@@ -1,5 +1,11 @@
 <!-- Author: Edward Patch -->
+
+<!-- This is not the official template! This is PHPue Framework with AlpineJS! -->
+<!-- Use https://github.com/PHPue/PHPue for the official template -->
+<!-- Remember to run `npm run build` then `php -S localhost:3000 for the tailwind css to build!` -->
 <script>
+    $count = isset($_SESSION['counter']) ? $_SESSION['counter'] : 0;
+
     $lang = [
         'welcome' => 'Welcome to PHPue - Unique Experience',
         'subtitle' => 'A modern PHP framework with Vue-like syntax',
@@ -8,6 +14,14 @@
     ];
 
     $features = ["Fast", "Simple", "Powerful"];
+
+    @AJAX('POST')
+    function incrementCounter() {
+        if(isset($_SESSION['counter']))
+            $_SESSION['counter'] += 1;
+
+        else $_SESSION['counter'] = 1;
+    }
 </script>
 
 <header>
@@ -49,11 +63,38 @@
                 <a href="https://github.com/PHPue/PHPue/" class="px-6 py-3 bg-gray-800 text-white rounded-lg hover:bg-gray-900 transition-colors" target="blank">
                     {{$lang['github']}}
                 </a>
+                <div x-data="counter()">
+                    <button @click="increment" class="px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                        Clicked <span x-text="count">{{ $count }}</span> times
+                    </button>
+                </div>
             </div>
         </div>
     </div>
 </template>
 
 <cscript>
-    console.log("PHPue welcome page loaded!");
+    let ssrIncrementCount = async () => {
+        try {
+            const res = await fetch('', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({ action: "incrementCounter" })
+            });
+        }
+
+        catch(error) {
+            console.log("AJAX Error: ", error);
+        }
+    };
+
+    document.addEventListener('alpine:init', () => {
+        Alpine.data('counter', () => ({
+            count: {{ $count }},
+            async increment() {
+                this.count++;
+                await ssrIncrementCount();
+            }
+        }))
+    });
 </cscript>
